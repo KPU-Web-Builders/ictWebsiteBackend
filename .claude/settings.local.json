@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(php artisan make:migration:*)",
+      "Bash(php artisan make:seeder:*)",
+      "Bash(herd php artisan make:seeder:*)",
+      "Bash(/c/Users/Rahmani/.config/herd/bin/php artisan make:seeder UserSeeder)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

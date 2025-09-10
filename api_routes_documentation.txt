@@ -1,0 +1,1547 @@
+API Routes Documentation
+========================
+
+This file contains all API routes created for this Laravel application with examples.
+
+=== AUTHENTICATION ROUTES ===
+
+POST /api/auth/register
+- Description: Register a new user
+- Example: POST /api/auth/register
+- Body: {
+    "name": "John Doe",
+    "email": "john@example.com",
+    "password": "password123",
+    "password_confirmation": "password123"
+  }
+
+POST /api/auth/login
+- Description: Login user and get JWT token
+- Example: POST /api/auth/login
+- Body: {
+    "email": "john@example.com",
+    "password": "password123"
+  }
+
+POST /api/auth/logout
+- Description: Logout user (requires authentication)
+- Example: POST /api/auth/logout
+- Headers: Authorization: Bearer {jwt_token}
+
+POST /api/auth/refresh
+- Description: Refresh JWT token (requires authentication)
+- Example: POST /api/auth/refresh
+- Headers: Authorization: Bearer {jwt_token}
+
+GET /api/auth/me
+- Description: Get current authenticated user info
+- Example: GET /api/auth/me
+- Headers: Authorization: Bearer {jwt_token}
+
+=== SITE SETTINGS ROUTES ===
+
+GET /api/settings
+- Description: Get all site settings
+- Example: GET /api/settings
+- Response: {
+    "status": "success",
+    "data": [
+      {
+        "id": 1,
+        "setting_key": "site_name",
+        "setting_value": "My Website",
+        "setting_type": "text",
+        "description": "Name of the website",
+        "updated_at": "2024-12-10T10:30:00.000000Z"
+      }
+    ]
+  }
+
+GET /api/settings/{key}
+- Description: Get specific setting by key
+- Example: GET /api/settings/site_name
+- Response: {
+    "status": "success",
+    "data": {
+      "id": 1,
+      "setting_key": "site_name",
+      "setting_value": "My Website",
+      "setting_type": "text",
+      "description": "Name of the website",
+      "updated_at": "2024-12-10T10:30:00.000000Z"
+    }
+  }
+
+POST /api/settings
+- Description: Create new site setting
+- Example 1 (Text/JSON/Boolean): POST /api/settings
+- Body: {
+    "setting_key": "site_name",
+    "setting_value": "My Website",
+    "setting_type": "text",
+    "description": "Website name"
+  }
+
+- Example 2 (Image Upload): POST /api/settings
+- Content-Type: multipart/form-data
+- Form Data:
+    setting_key: "site_logo"
+    setting_type: "image"
+    description: "Website logo"
+    file: [image file]
+
+PUT /api/settings/{key}
+- Description: Update existing setting by key
+- Example 1 (Text/JSON/Boolean): PUT /api/settings/site_name
+- Body: {
+    "setting_value": "Updated Website Name",
+    "description": "Updated description"
+  }
+
+- Example 2 (Image Upload): PUT /api/settings/site_logo
+- Content-Type: multipart/form-data
+- Form Data:
+    file: [new image file]
+    description: "Updated logo description"
+
+DELETE /api/settings/{key}
+- Description: Delete setting by key
+- Example: DELETE /api/settings/site_logo
+- Response: {
+    "status": "success",
+    "message": "Setting deleted successfully"
+  }
+
+=== SERVICE CATEGORIES ROUTES ===
+
+GET /api/service-categories
+- Description: Get all service categories
+- Query Parameters:
+  - active: true/false (filter by active status)
+- Example: GET /api/service-categories?active=true
+- Response: {
+    "status": "success",
+    "data": [
+      {
+        "id": 1,
+        "name": "Web Development",
+        "slug": "web-development",
+        "description": "Custom web development services",
+        "icon": "fa-code",
+        "sort_order": 0,
+        "is_active": true,
+        "created_at": "2024-12-10T10:30:00.000000Z"
+      }
+    ]
+  }
+
+GET /api/service-categories/{id}
+- Description: Get specific service category by ID
+- Example: GET /api/service-categories/1
+- Response: {
+    "status": "success",
+    "data": {
+      "id": 1,
+      "name": "Web Development",
+      "slug": "web-development",
+      "description": "Custom web development services",
+      "icon": "fa-code",
+      "sort_order": 0,
+      "is_active": true,
+      "created_at": "2024-12-10T10:30:00.000000Z"
+    }
+  }
+
+POST /api/service-categories
+- Description: Create new service category
+- Example: POST /api/service-categories
+- Body: {
+    "name": "Mobile Development",
+    "slug": "mobile-development",
+    "description": "iOS and Android app development",
+    "icon": "fa-mobile",
+    "sort_order": 1,
+    "is_active": true
+  }
+
+PUT /api/service-categories/{id}
+- Description: Update service category by ID
+- Example: PUT /api/service-categories/1
+- Body: {
+    "name": "Updated Web Development",
+    "description": "Updated description",
+    "sort_order": 2
+  }
+
+DELETE /api/service-categories/{id}
+- Description: Delete service category by ID
+- Example: DELETE /api/service-categories/1
+- Response: {
+    "status": "success",
+    "message": "Service category deleted successfully"
+  }
+
+PATCH /api/service-categories/{id}/toggle-active
+- Description: Toggle active status of service category
+- Example: PATCH /api/service-categories/1/toggle-active
+- Response: {
+    "status": "success",
+    "message": "Service category status updated successfully",
+    "data": {
+      "id": 1,
+      "is_active": false,
+      ...
+    }
+  }
+
+=== HOSTING PLANS ROUTES ===
+
+GET /api/hosting-plans
+- Description: Get all hosting plans with category relationship
+- Query Parameters:
+  - active: true/false (filter by active status)
+  - category_id: integer (filter by category)
+  - highlighted: true/false (filter by highlighted status)
+  - popular: true/false (filter by popular status)
+- Example: GET /api/hosting-plans?active=true&category_id=1&highlighted=true
+- Response: {
+    "status": "success",
+    "data": [
+      {
+        "id": 1,
+        "name": "Basic Hosting",
+        "slug": "basic-hosting",
+        "description": "Perfect for small websites",
+        "logo_url": "/images/basic-plan.png",
+        "category_id": 1,
+        "monthly_price": "9.99",
+        "yearly_price": "99.99",
+        "monthly_renewal_price": "12.99",
+        "yearly_renewal_price": "129.99",
+        "is_highlighted": false,
+        "is_popular": true,
+        "is_active": true,
+        "sort_order": 0,
+        "yearly_discount_percentage": 17,
+        "created_at": "2024-12-10T10:30:00.000000Z",
+        "updated_at": "2024-12-10T10:30:00.000000Z",
+        "category": {
+          "id": 1,
+          "name": "Web Hosting",
+          "slug": "web-hosting"
+        }
+      }
+    ]
+  }
+
+GET /api/hosting-plans/{id}
+- Description: Get specific hosting plan by ID with category
+- Example: GET /api/hosting-plans/1
+- Response: {
+    "status": "success",
+    "data": {
+      "id": 1,
+      "name": "Basic Hosting",
+      "slug": "basic-hosting",
+      "description": "Perfect for small websites",
+      "monthly_price": "9.99",
+      "yearly_price": "99.99",
+      "yearly_discount_percentage": 17,
+      "category": {
+        "id": 1,
+        "name": "Web Hosting"
+      }
+    }
+  }
+
+POST /api/hosting-plans
+- Description: Create new hosting plan
+- Example: POST /api/hosting-plans
+- Body: {
+    "name": "Premium Hosting",
+    "slug": "premium-hosting",
+    "description": "Advanced hosting with premium features",
+    "logo_url": "/images/premium-plan.png",
+    "category_id": 1,
+    "monthly_price": 29.99,
+    "yearly_price": 299.99,
+    "monthly_renewal_price": 34.99,
+    "yearly_renewal_price": 349.99,
+    "is_highlighted": true,
+    "is_popular": false,
+    "is_active": true,
+    "sort_order": 1
+  }
+
+PUT /api/hosting-plans/{id}
+- Description: Update hosting plan by ID
+- Example: PUT /api/hosting-plans/1
+- Body: {
+    "name": "Updated Basic Hosting",
+    "monthly_price": 12.99,
+    "yearly_price": 119.99,
+    "is_popular": true
+  }
+
+DELETE /api/hosting-plans/{id}
+- Description: Delete hosting plan by ID
+- Example: DELETE /api/hosting-plans/1
+- Response: {
+    "status": "success",
+    "message": "Hosting plan deleted successfully"
+  }
+
+PATCH /api/hosting-plans/{id}/toggle-active
+- Description: Toggle active status of hosting plan
+- Example: PATCH /api/hosting-plans/1/toggle-active
+- Response: {
+    "status": "success",
+    "message": "Hosting plan status updated successfully",
+    "data": {
+      "id": 1,
+      "is_active": false,
+      "category": {...}
+    }
+  }
+
+PATCH /api/hosting-plans/{id}/toggle-highlighted
+- Description: Toggle highlighted status of hosting plan
+- Example: PATCH /api/hosting-plans/1/toggle-highlighted
+- Response: {
+    "status": "success",
+    "message": "Hosting plan highlight status updated successfully"
+  }
+
+PATCH /api/hosting-plans/{id}/toggle-popular
+- Description: Toggle popular status of hosting plan
+- Example: PATCH /api/hosting-plans/1/toggle-popular
+- Response: {
+    "status": "success",
+    "message": "Hosting plan popular status updated successfully"
+  }
+
+=== PLAN FEATURES ROUTES ===
+
+GET /api/plan-features
+- Description: Get all plan features with plan and category relationships
+- Query Parameters:
+  - plan_id: integer (filter by specific plan)
+  - included: true/false (filter by included status)
+- Example: GET /api/plan-features?plan_id=1&included=true
+- Response: {
+    "status": "success",
+    "data": [
+      {
+        "id": 1,
+        "plan_id": 1,
+        "feature_name": "Storage Space",
+        "is_included": true,
+        "feature_value": "100 GB",
+        "tooltip": "SSD storage with high performance",
+        "sort_order": 0,
+        "formatted_feature": "Storage Space: 100 GB",
+        "plan": {
+          "id": 1,
+          "name": "Basic Hosting",
+          "category": {
+            "id": 1,
+            "name": "Web Hosting"
+          }
+        }
+      }
+    ]
+  }
+
+GET /api/plan-features/{id}
+- Description: Get specific plan feature by ID with relationships
+- Example: GET /api/plan-features/1
+- Response: {
+    "status": "success",
+    "data": {
+      "id": 1,
+      "plan_id": 1,
+      "feature_name": "Storage Space",
+      "is_included": true,
+      "feature_value": "100 GB",
+      "tooltip": "SSD storage with high performance",
+      "sort_order": 0,
+      "plan": {
+        "id": 1,
+        "name": "Basic Hosting"
+      }
+    }
+  }
+
+GET /api/plan-features/by-plan/{planId}
+- Description: Get all features for a specific plan
+- Example: GET /api/plan-features/by-plan/1
+- Response: {
+    "status": "success",
+    "data": {
+      "plan": {
+        "id": 1,
+        "name": "Basic Hosting",
+        "slug": "basic-hosting"
+      },
+      "features": [
+        {
+          "id": 1,
+          "feature_name": "Storage Space",
+          "is_included": true,
+          "feature_value": "100 GB",
+          "sort_order": 0
+        }
+      ]
+    }
+  }
+
+POST /api/plan-features
+- Description: Create new plan feature
+- Example: POST /api/plan-features
+- Body: {
+    "plan_id": 1,
+    "feature_name": "Bandwidth",
+    "is_included": true,
+    "feature_value": "Unlimited",
+    "tooltip": "No bandwidth restrictions",
+    "sort_order": 1
+  }
+
+POST /api/plan-features/bulk
+- Description: Create multiple features for a plan at once
+- Example: POST /api/plan-features/bulk
+- Body: {
+    "plan_id": 1,
+    "features": [
+      {
+        "feature_name": "Email Accounts",
+        "is_included": true,
+        "feature_value": "10",
+        "tooltip": "Professional email accounts",
+        "sort_order": 0
+      },
+      {
+        "feature_name": "SSL Certificate",
+        "is_included": true,
+        "feature_value": "Free",
+        "sort_order": 1
+      }
+    ]
+  }
+
+PUT /api/plan-features/{id}
+- Description: Update plan feature by ID
+- Example: PUT /api/plan-features/1
+- Body: {
+    "feature_name": "Updated Storage Space",
+    "feature_value": "200 GB",
+    "tooltip": "Enhanced SSD storage"
+  }
+
+DELETE /api/plan-features/{id}
+- Description: Delete plan feature by ID
+- Example: DELETE /api/plan-features/1
+- Response: {
+    "status": "success",
+    "message": "Plan feature deleted successfully"
+  }
+
+PATCH /api/plan-features/{id}/toggle-included
+- Description: Toggle included status of plan feature
+- Example: PATCH /api/plan-features/1/toggle-included
+- Response: {
+    "status": "success",
+    "message": "Plan feature inclusion status updated successfully",
+    "data": {
+      "id": 1,
+      "is_included": false,
+      "plan": {...}
+    }
+  }
+
+=== PORTFOLIO ROUTES ===
+
+GET /api/portfolio
+- Description: Get all portfolio items with service and category relationships
+- Query Parameters:
+  - published: true/false (filter by published status)
+  - featured: true/false (filter by featured status)
+  - service_id: integer (filter by service)
+  - search: string (search in title or client name)
+  - year: integer (filter by project year)
+  - recent: integer (get recent N items)
+  - per_page: integer (pagination limit, default 15)
+- Example: GET /api/portfolio?published=true&featured=true&service_id=1&recent=5
+- Response: {
+    "status": "success",
+    "data": {
+      "data": [
+        {
+          "id": 1,
+          "title": "E-commerce Website",
+          "slug": "ecommerce-website",
+          "description": "Modern e-commerce platform",
+          "client_name": "ABC Corp",
+          "project_url": "https://example.com",
+          "featured_image": "/uploads/portfolio/1733123456_featured_image.jpg",
+          "gallery_images": [
+            "/uploads/portfolio/1733123456_gallery_0_image1.jpg",
+            "/uploads/portfolio/1733123456_gallery_1_image2.jpg"
+          ],
+          "service_id": 1,
+          "technologies_used": ["Laravel", "Vue.js", "MySQL"],
+          "project_date": "2024-01-15",
+          "is_featured": true,
+          "is_published": true,
+          "technologies_string": "Laravel, Vue.js, MySQL",
+          "gallery_images_count": 2,
+          "created_at": "2024-12-10T10:30:00.000000Z",
+          "updated_at": "2024-12-10T10:30:00.000000Z",
+          "service": {
+            "id": 1,
+            "name": "Web Development",
+            "slug": "web-development",
+            "category": {
+              "id": 1,
+              "name": "Development Services"
+            }
+          }
+        }
+      ],
+      "pagination": {...}
+    }
+  }
+
+GET /api/portfolio/{slug}
+- Description: Get specific portfolio item by slug with relationships
+- Example: GET /api/portfolio/ecommerce-website
+- Response: {
+    "status": "success",
+    "data": {
+      "id": 1,
+      "title": "E-commerce Website",
+      "slug": "ecommerce-website",
+      "description": "Modern e-commerce platform with advanced features",
+      "client_name": "ABC Corp",
+      "project_url": "https://example.com",
+      "featured_image": "/uploads/portfolio/1733123456_featured_image.jpg",
+      "gallery_images": [...],
+      "technologies_used": ["Laravel", "Vue.js", "MySQL"],
+      "project_date": "2024-01-15",
+      "service": {...}
+    }
+  }
+
+POST /api/portfolio
+- Description: Create new portfolio item with file uploads
+- Content-Type: multipart/form-data
+- Form Data:
+    title: "New Project"
+    description: "Project description"
+    client_name: "Client Name"
+    project_url: "https://project-url.com"
+    service_id: 1
+    technologies_used: ["React", "Node.js"] (JSON array)
+    project_date: "2024-12-10"
+    is_featured: true
+    is_published: true
+    featured_image: [image file]
+    gallery_images: [array of image files]
+
+PUT /api/portfolio/{slug}
+- Description: Update portfolio item by slug
+- Content-Type: multipart/form-data (for file uploads) or application/json
+- Example 1 (JSON Update): PUT /api/portfolio/ecommerce-website
+- Body: {
+    "title": "Updated E-commerce Website",
+    "description": "Updated description",
+    "technologies_used": ["Laravel", "Vue.js", "MySQL", "Redis"]
+  }
+
+- Example 2 (File Upload): PUT /api/portfolio/ecommerce-website
+- Form Data:
+    title: "Updated Project"
+    featured_image: [new image file]
+    gallery_images: [new array of image files]
+
+DELETE /api/portfolio/{slug}
+- Description: Delete portfolio item by slug (also deletes associated files)
+- Example: DELETE /api/portfolio/ecommerce-website
+- Response: {
+    "status": "success",
+    "message": "Portfolio item deleted successfully"
+  }
+
+PATCH /api/portfolio/{slug}/toggle-featured
+- Description: Toggle featured status of portfolio item
+- Example: PATCH /api/portfolio/ecommerce-website/toggle-featured
+- Response: {
+    "status": "success",
+    "message": "Portfolio featured status updated successfully",
+    "data": {
+      "id": 1,
+      "is_featured": false,
+      "service": {...}
+    }
+  }
+
+PATCH /api/portfolio/{slug}/toggle-published
+- Description: Toggle published status of portfolio item
+- Example: PATCH /api/portfolio/ecommerce-website/toggle-published
+- Response: {
+    "status": "success",
+    "message": "Portfolio published status updated successfully",
+    "data": {
+      "id": 1,
+      "is_published": false,
+      "service": {...}
+    }
+  }
+
+=== TEAM MEMBERS ROUTES ===
+
+GET /api/team-members
+- Description: Get all team members
+- Query Parameters:
+  - active: true/false (filter by active status)
+  - verified: true/false (filter by verified status)
+  - role: string (filter by role - partial match)
+  - search: string (search in name or role)
+- Example: GET /api/team-members?active=true&verified=true&role=developer
+- Response: {
+    "status": "success",
+    "data": [
+      {
+        "id": 1,
+        "name": "John Doe",
+        "role": "Senior Developer",
+        "bio": "Experienced full-stack developer with 5+ years",
+        "photo_url": "/uploads/team/1733123456_photo.jpg",
+        "is_verified": true,
+        "skills": ["Laravel", "Vue.js", "MySQL", "Docker"],
+        "linkedin_url": "https://linkedin.com/in/johndoe",
+        "github_url": "https://github.com/johndoe",
+        "twitter_url": "https://twitter.com/johndoe",
+        "email": "john@example.com",
+        "phone": "+1234567890",
+        "sort_order": 0,
+        "is_active": true,
+        "joined_date": "2020-01-15",
+        "skills_string": "Laravel, Vue.js, MySQL, Docker",
+        "skills_count": 4,
+        "years_of_experience": 4,
+        "social_links": {
+          "linkedin": "https://linkedin.com/in/johndoe",
+          "github": "https://github.com/johndoe",
+          "twitter": "https://twitter.com/johndoe"
+        },
+        "has_social_links": true,
+        "created_at": "2024-12-10T10:30:00.000000Z"
+      }
+    ]
+  }
+
+GET /api/team-members/{id}
+- Description: Get specific team member by ID
+- Example: GET /api/team-members/1
+- Response: {
+    "status": "success",
+    "data": {
+      "id": 1,
+      "name": "John Doe",
+      "role": "Senior Developer",
+      "bio": "Experienced full-stack developer",
+      "photo_url": "/uploads/team/1733123456_photo.jpg",
+      "skills": ["Laravel", "Vue.js", "MySQL"],
+      "years_of_experience": 4,
+      "social_links": {...}
+    }
+  }
+
+GET /api/team-members/by-role/{role}
+- Description: Get all team members by role (active only)
+- Example: GET /api/team-members/by-role/developer
+- Response: {
+    "status": "success",
+    "data": {
+      "role": "developer",
+      "members": [...],
+      "count": 3
+    }
+  }
+
+POST /api/team-members
+- Description: Create new team member with photo upload
+- Content-Type: multipart/form-data
+- Form Data:
+    name: "Jane Smith"
+    role: "UI/UX Designer"
+    bio: "Creative designer with passion for user experience"
+    is_verified: true
+    skills: ["Figma", "Adobe XD", "Sketch"] (JSON array)
+    linkedin_url: "https://linkedin.com/in/janesmith"
+    github_url: "https://github.com/janesmith"
+    email: "jane@example.com"
+    phone: "+1234567891"
+    sort_order: 1
+    is_active: true
+    joined_date: "2021-06-01"
+    photo: [image file]
+
+PUT /api/team-members/{id}
+- Description: Update team member by ID
+- Content-Type: multipart/form-data (for photo) or application/json
+- Example 1 (JSON Update): PUT /api/team-members/1
+- Body: {
+    "name": "Updated John Doe",
+    "role": "Lead Developer",
+    "skills": ["Laravel", "Vue.js", "MySQL", "Redis", "Docker"]
+  }
+
+- Example 2 (Photo Upload): PUT /api/team-members/1
+- Form Data:
+    name: "Updated John Doe"
+    photo: [new image file]
+
+DELETE /api/team-members/{id}
+- Description: Delete team member by ID (also deletes associated photo)
+- Example: DELETE /api/team-members/1
+- Response: {
+    "status": "success",
+    "message": "Team member deleted successfully"
+  }
+
+PATCH /api/team-members/{id}/toggle-active
+- Description: Toggle active status of team member
+- Example: PATCH /api/team-members/1/toggle-active
+- Response: {
+    "status": "success",
+    "message": "Team member status updated successfully",
+    "data": {
+      "id": 1,
+      "is_active": false,
+      ...
+    }
+  }
+
+PATCH /api/team-members/{id}/toggle-verified
+- Description: Toggle verified status of team member
+- Example: PATCH /api/team-members/1/toggle-verified
+- Response: {
+    "status": "success",
+    "message": "Team member verification status updated successfully",
+    "data": {
+      "id": 1,
+      "is_verified": false,
+      ...
+    }
+  }
+
+=== FAQ CATEGORIES ROUTES ===
+
+GET /api/faq-categories
+- Description: Get all FAQ categories
+- Query Parameters:
+  - active: true/false (filter by active status)
+  - search: string (search by name)
+  - with_counts: true/false (include FAQ counts)
+  - with_faqs: true/false (include related FAQs)
+  - active_faqs_only: true/false (include only active FAQs, requires with_faqs=true)
+- Example: GET /api/faq-categories?active=true&with_counts=true&with_faqs=true&active_faqs_only=true
+- Response: {
+    "status": "success",
+    "data": [
+      {
+        "id": 1,
+        "name": "General Questions",
+        "description": "Common questions about our services",
+        "sort_order": 0,
+        "is_active": true,
+        "faqs_count": 5,
+        "active_faqs_count": 4,
+        "created_at": "2024-12-10T10:30:00.000000Z",
+        "active_faqs": [
+          {
+            "id": 1,
+            "question": "What services do you offer?",
+            "answer": "We offer web development, hosting, and design services.",
+            "is_active": true
+          }
+        ]
+      }
+    ]
+  }
+
+GET /api/faq-categories/active-with-faqs
+- Description: Get all active FAQ categories with their active FAQs (public endpoint)
+- Example: GET /api/faq-categories/active-with-faqs
+- Response: {
+    "status": "success",
+    "data": [
+      {
+        "id": 1,
+        "name": "General Questions",
+        "description": "Common questions about our services",
+        "sort_order": 0,
+        "is_active": true,
+        "active_faqs_count": 4,
+        "active_faqs": [...]
+      }
+    ]
+  }
+
+GET /api/faq-categories/{id}
+- Description: Get specific FAQ category by ID
+- Query Parameters:
+  - with_counts: true/false (include FAQ counts)
+  - with_faqs: true/false (include related FAQs)
+  - active_faqs_only: true/false (include only active FAQs)
+- Example: GET /api/faq-categories/1?with_faqs=true&active_faqs_only=true
+- Response: {
+    "status": "success",
+    "data": {
+      "id": 1,
+      "name": "General Questions",
+      "description": "Common questions about our services",
+      "sort_order": 0,
+      "is_active": true,
+      "active_faqs": [...]
+    }
+  }
+
+POST /api/faq-categories
+- Description: Create new FAQ category
+- Example: POST /api/faq-categories
+- Body: {
+    "name": "Billing Questions",
+    "description": "Questions related to billing and payments",
+    "sort_order": 1,
+    "is_active": true
+  }
+
+PUT /api/faq-categories/{id}
+- Description: Update FAQ category by ID
+- Example: PUT /api/faq-categories/1
+- Body: {
+    "name": "Updated General Questions",
+    "description": "Updated description",
+    "sort_order": 2
+  }
+
+DELETE /api/faq-categories/{id}
+- Description: Delete FAQ category by ID (only if no FAQs are associated)
+- Example: DELETE /api/faq-categories/1
+- Response: {
+    "status": "success",
+    "message": "FAQ category deleted successfully"
+  }
+- Error Response (if has FAQs): {
+    "status": "error",
+    "message": "Cannot delete category. It has 5 FAQ(s) associated with it."
+  }
+
+PATCH /api/faq-categories/{id}/toggle-active
+- Description: Toggle active status of FAQ category
+- Example: PATCH /api/faq-categories/1/toggle-active
+- Response: {
+    "status": "success",
+    "message": "FAQ category status updated successfully",
+    "data": {
+      "id": 1,
+      "is_active": false,
+      ...
+    }
+  }
+
+POST /api/faq-categories/reorder
+- Description: Reorder multiple FAQ categories
+- Example: POST /api/faq-categories/reorder
+- Body: {
+    "categories": [
+      {
+        "id": 1,
+        "sort_order": 2
+      },
+      {
+        "id": 2,
+        "sort_order": 0
+      },
+      {
+        "id": 3,
+        "sort_order": 1
+      }
+    ]
+  }
+
+=== FAQS ROUTES ===
+
+GET /api/faqs
+- Description: Get all FAQs with category relationships and pagination
+- Query Parameters:
+  - active: true/false (filter by active status)
+  - featured: true/false (filter by featured status)
+  - category_id: integer (filter by category)
+  - search: string (search in question and answer)
+  - per_page: integer (pagination limit, default 20)
+- Example: GET /api/faqs?active=true&featured=true&category_id=1&search=billing&per_page=10
+- Response: {
+    "status": "success",
+    "data": {
+      "data": [
+        {
+          "id": 1,
+          "category_id": 1,
+          "question": "What payment methods do you accept?",
+          "answer": "We accept all major credit cards, PayPal, and bank transfers.",
+          "is_featured": true,
+          "sort_order": 0,
+          "is_active": true,
+          "question_preview": "What payment methods do you accept?",
+          "answer_preview": "We accept all major credit cards, PayPal, and bank transfers.",
+          "answer_word_count": 12,
+          "question_word_count": 6,
+          "created_at": "2024-12-10T10:30:00.000000Z",
+          "updated_at": "2024-12-10T10:30:00.000000Z",
+          "category": {
+            "id": 1,
+            "name": "Billing Questions",
+            "description": "Questions about billing and payments"
+          }
+        }
+      ],
+      "pagination": {...}
+    }
+  }
+
+GET /api/faqs/featured
+- Description: Get all featured and active FAQs
+- Example: GET /api/faqs/featured
+- Response: {
+    "status": "success",
+    "data": [
+      {
+        "id": 1,
+        "question": "What payment methods do you accept?",
+        "answer": "We accept all major credit cards...",
+        "is_featured": true,
+        "category": {...}
+      }
+    ]
+  }
+
+GET /api/faqs/public
+- Description: Get all active FAQs grouped by active categories (public endpoint)
+- Example: GET /api/faqs/public
+- Response: {
+    "status": "success",
+    "data": {
+      "General Questions": [
+        {
+          "id": 1,
+          "question": "What services do you offer?",
+          "answer": "We offer web development, hosting...",
+          "category": {...}
+        }
+      ],
+      "Billing Questions": [...]
+    }
+  }
+
+GET /api/faqs/search
+- Description: Search FAQs by question and answer content
+- Query Parameters:
+  - q: string (required, minimum 3 characters)
+- Example: GET /api/faqs/search?q=payment
+- Response: {
+    "status": "success",
+    "data": {
+      "query": "payment",
+      "results": [...],
+      "count": 3
+    }
+  }
+
+GET /api/faqs/by-category/{categoryId}
+- Description: Get all active FAQs for a specific category
+- Example: GET /api/faqs/by-category/1
+- Response: {
+    "status": "success",
+    "data": {
+      "category": {
+        "id": 1,
+        "name": "Billing Questions"
+      },
+      "faqs": [...],
+      "count": 5
+    }
+  }
+
+GET /api/faqs/{id}
+- Description: Get specific FAQ by ID with category
+- Example: GET /api/faqs/1
+- Response: {
+    "status": "success",
+    "data": {
+      "id": 1,
+      "category_id": 1,
+      "question": "What payment methods do you accept?",
+      "answer": "We accept all major credit cards, PayPal, and bank transfers.",
+      "is_featured": true,
+      "sort_order": 0,
+      "is_active": true,
+      "category": {...}
+    }
+  }
+
+POST /api/faqs
+- Description: Create new FAQ
+- Example: POST /api/faqs
+- Body: {
+    "category_id": 1,
+    "question": "How do I reset my password?",
+    "answer": "Click on 'Forgot Password' link on the login page and follow the instructions.",
+    "is_featured": false,
+    "sort_order": 1,
+    "is_active": true
+  }
+
+PUT /api/faqs/{id}
+- Description: Update FAQ by ID
+- Example: PUT /api/faqs/1
+- Body: {
+    "question": "Updated: What payment methods do you accept?",
+    "answer": "Updated answer with more payment methods...",
+    "is_featured": true
+  }
+
+DELETE /api/faqs/{id}
+- Description: Delete FAQ by ID
+- Example: DELETE /api/faqs/1
+- Response: {
+    "status": "success",
+    "message": "FAQ deleted successfully"
+  }
+
+PATCH /api/faqs/{id}/toggle-active
+- Description: Toggle active status of FAQ
+- Example: PATCH /api/faqs/1/toggle-active
+- Response: {
+    "status": "success",
+    "message": "FAQ status updated successfully",
+    "data": {
+      "id": 1,
+      "is_active": false,
+      "category": {...}
+    }
+  }
+
+PATCH /api/faqs/{id}/toggle-featured
+- Description: Toggle featured status of FAQ
+- Example: PATCH /api/faqs/1/toggle-featured
+- Response: {
+    "status": "success",
+    "message": "FAQ featured status updated successfully",
+    "data": {
+      "id": 1,
+      "is_featured": false,
+      "category": {...}
+    }
+  }
+
+POST /api/faqs/reorder
+- Description: Reorder multiple FAQs
+- Example: POST /api/faqs/reorder
+- Body: {
+    "faqs": [
+      {
+        "id": 1,
+        "sort_order": 2
+      },
+      {
+        "id": 2,
+        "sort_order": 0
+      },
+      {
+        "id": 3,
+        "sort_order": 1
+      }
+    ]
+  }
+
+POST /api/faqs/bulk-update
+- Description: Perform bulk actions on multiple FAQs
+- Example: POST /api/faqs/bulk-update
+- Body: {
+    "ids": [1, 2, 3],
+    "action": "activate",
+    "category_id": 2
+  }
+- Available actions: activate, deactivate, feature, unfeature, delete
+- Response: {
+    "status": "success",
+    "message": "FAQs activated successfully"
+  }
+
+=== CONTACT MESSAGES ROUTES ===
+
+GET /api/contact-messages
+- Description: Get all contact messages with filtering and pagination
+- Query Parameters:
+  - status: new/read/replied/closed (filter by status)
+  - service_interest: string (filter by service interest)
+  - budget_range: string (filter by budget range)
+  - from_date: date (filter from date)
+  - to_date: date (filter to date)
+  - recent_days: integer (filter by recent days)
+  - search: string (search in name, email, company, subject, message)
+  - per_page: integer (pagination limit, default 20)
+- Example: GET /api/contact-messages?status=new&recent_days=7&search=website&per_page=10
+- Response: {
+    "status": "success",
+    "data": {
+      "data": [
+        {
+          "id": 1,
+          "name": "John Doe",
+          "email": "john@example.com",
+          "phone": "+1234567890",
+          "company": "ABC Corp",
+          "subject": "Website Development Inquiry",
+          "message": "I'm interested in developing a new website for my business...",
+          "service_interest": "Web Development",
+          "budget_range": "$5000-$10000",
+          "preferred_contact": "email",
+          "status": "new",
+          "admin_notes": null,
+          "ip_address": "192.168.1.1",
+          "user_agent": "Mozilla/5.0...",
+          "status_label": "New",
+          "preferred_contact_label": "Email",
+          "message_preview": "I'm interested in developing a new website for my business...",
+          "is_new": true,
+          "is_replied": false,
+          "is_closed": false,
+          "response_time": null,
+          "time_ago": "2 hours ago",
+          "created_at": "2024-12-10T10:30:00.000000Z",
+          "replied_at": null
+        }
+      ],
+      "pagination": {...}
+    }
+  }
+
+GET /api/contact-messages/stats
+- Description: Get contact messages statistics and analytics
+- Example: GET /api/contact-messages/stats
+- Response: {
+    "status": "success",
+    "data": {
+      "stats": {
+        "total": 150,
+        "new": 25,
+        "read": 40,
+        "replied": 70,
+        "closed": 15,
+        "today": 5,
+        "this_week": 32,
+        "this_month": 89
+      },
+      "top_services": [
+        {
+          "service_interest": "Web Development",
+          "count": 45
+        },
+        {
+          "service_interest": "SEO Services",
+          "count": 30
+        }
+      ],
+      "budget_distribution": [
+        {
+          "budget_range": "$5000-$10000",
+          "count": 25
+        },
+        {
+          "budget_range": "$1000-$5000",
+          "count": 40
+        }
+      ]
+    }
+  }
+
+GET /api/contact-messages/export
+- Description: Export contact messages to CSV or JSON
+- Query Parameters:
+  - format: csv/json (required)
+  - status: new/read/replied/closed (optional filter)
+  - from_date: date (optional filter)
+  - to_date: date (optional filter)
+- Example: GET /api/contact-messages/export?format=csv&status=new&from_date=2024-12-01
+- Response: {
+    "status": "success",
+    "data": [...],
+    "count": 25,
+    "export_format": "csv"
+  }
+
+GET /api/contact-messages/{id}
+- Description: Get specific contact message by ID (auto-marks as read if new)
+- Example: GET /api/contact-messages/1
+- Response: {
+    "status": "success",
+    "data": {
+      "id": 1,
+      "name": "John Doe",
+      "email": "john@example.com",
+      "message": "Full message content...",
+      "status": "read",
+      "admin_notes": null,
+      "response_time": null,
+      ...
+    }
+  }
+
+POST /api/contact-messages
+- Description: Submit new contact message (public endpoint)
+- Example: POST /api/contact-messages
+- Body: {
+    "name": "Jane Smith",
+    "email": "jane@example.com",
+    "phone": "+1234567891",
+    "company": "XYZ Ltd",
+    "subject": "SEO Services Inquiry",
+    "message": "I need help with SEO for my website...",
+    "service_interest": "SEO Services",
+    "budget_range": "$1000-$5000",
+    "preferred_contact": "email"
+  }
+- Response: {
+    "status": "success",
+    "message": "Contact message submitted successfully",
+    "data": {
+      "id": 2,
+      "name": "Jane Smith",
+      "status": "new",
+      "ip_address": "192.168.1.2",
+      "user_agent": "Mozilla/5.0...",
+      ...
+    }
+  }
+
+PUT /api/contact-messages/{id}
+- Description: Update contact message (admin use)
+- Example: PUT /api/contact-messages/1
+- Body: {
+    "status": "replied",
+    "admin_notes": "Responded via email with quote",
+    "replied_at": "2024-12-10T15:30:00Z"
+  }
+
+DELETE /api/contact-messages/{id}
+- Description: Delete contact message by ID
+- Example: DELETE /api/contact-messages/1
+- Response: {
+    "status": "success",
+    "message": "Contact message deleted successfully"
+  }
+
+PATCH /api/contact-messages/{id}/status
+- Description: Update status of contact message
+- Example: PATCH /api/contact-messages/1/status
+- Body: {
+    "status": "replied",
+    "admin_notes": "Quote sent via email"
+  }
+- Response: {
+    "status": "success",
+    "message": "Status updated successfully",
+    "data": {
+      "id": 1,
+      "status": "replied",
+      "replied_at": "2024-12-10T15:30:00.000000Z",
+      ...
+    }
+  }
+
+POST /api/contact-messages/bulk-update
+- Description: Perform bulk actions on multiple contact messages
+- Example: POST /api/contact-messages/bulk-update
+- Body: {
+    "ids": [1, 2, 3],
+    "action": "mark_replied",
+    "admin_notes": "Bulk replied to inquiries"
+  }
+- Available actions: mark_read, mark_replied, mark_closed, delete
+- Response: {
+    "status": "success",
+    "message": "Messages marked as replied"
+  }
+
+=== TESTIMONIALS ROUTES ===
+
+GET /api/testimonials
+- Description: Get all testimonials with service relationships and pagination
+- Query Parameters:
+  - approved: true/false (filter by approval status)
+  - featured: true/false (filter by featured status)
+  - service_id: integer (filter by service)
+  - rating: integer 1-5 (filter by specific rating)
+  - min_rating: integer 1-5 (filter by minimum rating)
+  - search: string (search in client name, company, position, testimonial)
+  - per_page: integer (pagination limit, default 15)
+- Example: GET /api/testimonials?approved=true&featured=true&min_rating=4&search=website&per_page=10
+- Response: {
+    "status": "success",
+    "data": {
+      "data": [
+        {
+          "id": 1,
+          "client_name": "John Smith",
+          "company": "ABC Corporation",
+          "position": "CEO",
+          "testimonial": "Outstanding service! They delivered exactly what we needed...",
+          "rating": 5,
+          "photo_url": "/uploads/testimonials/1733123456_photo.jpg",
+          "service_id": 1,
+          "is_featured": true,
+          "is_approved": true,
+          "sort_order": 0,
+          "testimonial_preview": "Outstanding service! They delivered exactly what we needed...",
+          "star_rating": "★★★★★",
+          "rating_percentage": 100,
+          "client_full_name": "John Smith, CEO at ABC Corporation",
+          "word_count": 25,
+          "has_photo": true,
+          "created_at": "2024-12-10T10:30:00.000000Z",
+          "service": {
+            "id": 1,
+            "name": "Web Development",
+            "slug": "web-development"
+          }
+        }
+      ],
+      "pagination": {...}
+    }
+  }
+
+GET /api/testimonials/public
+- Description: Get all approved testimonials (public endpoint)
+- Example: GET /api/testimonials/public
+- Response: {
+    "status": "success",
+    "data": [
+      {
+        "id": 1,
+        "client_name": "John Smith",
+        "company": "ABC Corporation",
+        "testimonial": "Outstanding service!...",
+        "rating": 5,
+        "star_rating": "★★★★★",
+        "service": {...}
+      }
+    ]
+  }
+
+GET /api/testimonials/featured
+- Description: Get all approved and featured testimonials
+- Example: GET /api/testimonials/featured
+- Response: {
+    "status": "success",
+    "data": [...]
+  }
+
+GET /api/testimonials/stats
+- Description: Get testimonials statistics and analytics
+- Example: GET /api/testimonials/stats
+- Response: {
+    "status": "success",
+    "data": {
+      "stats": {
+        "total": 150,
+        "approved": 120,
+        "pending": 30,
+        "featured": 25,
+        "average_rating": 4.2,
+        "rating_distribution": {
+          "5": 60,
+          "4": 40,
+          "3": 15,
+          "2": 3,
+          "1": 2
+        }
+      },
+      "top_services": [
+        {
+          "service_id": 1,
+          "count": 45,
+          "avg_rating": 4.5,
+          "service": {
+            "name": "Web Development"
+          }
+        }
+      ]
+    }
+  }
+
+GET /api/testimonials/by-service/{serviceId}
+- Description: Get all approved testimonials for a specific service
+- Example: GET /api/testimonials/by-service/1
+- Response: {
+    "status": "success",
+    "data": {
+      "service": {
+        "id": 1,
+        "name": "Web Development"
+      },
+      "testimonials": [...],
+      "count": 15,
+      "average_rating": 4.3
+    }
+  }
+
+GET /api/testimonials/{id}
+- Description: Get specific testimonial by ID with service
+- Example: GET /api/testimonials/1
+- Response: {
+    "status": "success",
+    "data": {
+      "id": 1,
+      "client_name": "John Smith",
+      "company": "ABC Corporation",
+      "position": "CEO",
+      "testimonial": "Outstanding service! They delivered exactly what we needed...",
+      "rating": 5,
+      "photo_url": "/uploads/testimonials/1733123456_photo.jpg",
+      "is_featured": true,
+      "is_approved": true,
+      "service": {...}
+    }
+  }
+
+POST /api/testimonials
+- Description: Create new testimonial with photo upload
+- Content-Type: multipart/form-data
+- Form Data:
+    client_name: "Jane Doe"
+    company: "XYZ Ltd"
+    position: "Marketing Director"
+    testimonial: "Excellent work! Very professional team..."
+    rating: 5
+    service_id: 1
+    is_featured: false
+    is_approved: false
+    sort_order: 0
+    photo: [image file]
+
+PUT /api/testimonials/{id}
+- Description: Update testimonial by ID
+- Content-Type: multipart/form-data (for photo) or application/json
+- Example 1 (JSON Update): PUT /api/testimonials/1
+- Body: {
+    "client_name": "Updated John Smith",
+    "testimonial": "Updated testimonial text...",
+    "rating": 5,
+    "is_approved": true
+  }
+
+- Example 2 (Photo Upload): PUT /api/testimonials/1
+- Form Data:
+    client_name: "Updated John Smith"
+    photo: [new image file]
+
+DELETE /api/testimonials/{id}
+- Description: Delete testimonial by ID (also deletes associated photo)
+- Example: DELETE /api/testimonials/1
+- Response: {
+    "status": "success",
+    "message": "Testimonial deleted successfully"
+  }
+
+PATCH /api/testimonials/{id}/toggle-approved
+- Description: Toggle approval status of testimonial
+- Example: PATCH /api/testimonials/1/toggle-approved
+- Response: {
+    "status": "success",
+    "message": "Testimonial approval status updated successfully",
+    "data": {
+      "id": 1,
+      "is_approved": true,
+      "service": {...}
+    }
+  }
+
+PATCH /api/testimonials/{id}/toggle-featured
+- Description: Toggle featured status of testimonial
+- Example: PATCH /api/testimonials/1/toggle-featured
+- Response: {
+    "status": "success",
+    "message": "Testimonial featured status updated successfully",
+    "data": {
+      "id": 1,
+      "is_featured": true,
+      "service": {...}
+    }
+  }
+
+POST /api/testimonials/reorder
+- Description: Reorder multiple testimonials
+- Example: POST /api/testimonials/reorder
+- Body: {
+    "testimonials": [
+      {
+        "id": 1,
+        "sort_order": 2
+      },
+      {
+        "id": 2,
+        "sort_order": 0
+      },
+      {
+        "id": 3,
+        "sort_order": 1
+      }
+    ]
+  }
+
+POST /api/testimonials/bulk-update
+- Description: Perform bulk actions on multiple testimonials
+- Example: POST /api/testimonials/bulk-update
+- Body: {
+    "ids": [1, 2, 3],
+    "action": "approve",
+    "service_id": 2
+  }
+- Available actions: approve, unapprove, feature, unfeature, delete
+- Response: {
+    "status": "success",
+    "message": "Testimonials approved successfully"
+  }
+
+=== OTHER ROUTES ===
+
+GET /api/user
+- Description: Get authenticated user (Sanctum)
+- Example: GET /api/user
+- Headers: Authorization: Bearer {sanctum_token}
+
+GET /api/protected
+- Description: Example protected route
+- Example: GET /api/protected
+- Headers: Authorization: Bearer {jwt_token}
+
+=== NOTES ===
+- Regular POST/PUT requests should include Content-Type: application/json header
+- File upload requests should use Content-Type: multipart/form-data header
+- JWT tokens expire after 60 minutes (configurable)
+- Setting types: text, image, json, boolean
+- Boolean values are stored as "1"/"0" but returned as true/false
+- JSON values are automatically encoded/decoded
+
+=== FILE UPLOAD NOTES ===
+- Image files are uploaded to /public/uploads/settings/ directory
+- Accepted image formats: jpeg, png, jpg, gif, svg, webp
+- Maximum file size: 2MB
+- Files are automatically renamed with timestamp prefix
+- Old files are automatically deleted when updating image settings
+- File path is stored in setting_value (e.g., "/uploads/settings/1733123456_logo.png")
