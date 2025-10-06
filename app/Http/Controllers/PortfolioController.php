@@ -7,6 +7,7 @@ use App\Models\Service;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class PortfolioController extends Controller
@@ -246,7 +247,7 @@ class PortfolioController extends Controller
         // Handle featured image upload
         if ($request->hasFile('featured_image')) {
             $request->validate([
-                'featured_image' => 'image|mimes:jpeg,png,jpg,gif,webp|max:5120' // 5MB
+                'featured_image' => 'image|mimes:jpeg,png,jpg,gif,webp'
             ]);
 
             // Delete old featured image if updating
@@ -259,16 +260,15 @@ class PortfolioController extends Controller
 
             $file = $request->file('featured_image');
             $fileName = time() . '_featured_' . $file->getClientOriginalName();
-            $file->move(public_path('uploads/portfolio'), $fileName);
-            
-            $fileData['featured_image'] = '/uploads/portfolio/' . $fileName;
+            Storage::disk('public')->putFileAs('portfolio', $file, $fileName);
+            $fileData['featured_image'] = '/storage/portfolio/' . $fileName;
         }
 
         // Handle gallery images upload
         if ($request->hasFile('gallery_images')) {
             $request->validate([
                 'gallery_images' => 'array|max:10',
-                'gallery_images.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:5120'
+                'gallery_images.*' => 'image|mimes:jpeg,png,jpg,gif,webp'
             ]);
 
             // Delete old gallery images if updating
@@ -284,8 +284,8 @@ class PortfolioController extends Controller
             $galleryImages = [];
             foreach ($request->file('gallery_images') as $index => $file) {
                 $fileName = time() . '_gallery_' . $index . '_' . $file->getClientOriginalName();
-                $file->move(public_path('uploads/portfolio'), $fileName);
-                $galleryImages[] = '/uploads/portfolio/' . $fileName;
+                Storage::disk('public')->putFileAs('portfolio', $file, $fileName);
+                $galleryImages[] = '/storage/portfolio/' . $fileName;
             }
             
             $fileData['gallery_images'] = $galleryImages;
@@ -298,18 +298,19 @@ class PortfolioController extends Controller
     {
         // Delete featured image
         if ($portfolio->featured_image) {
-            $filePath = public_path($portfolio->featured_image);
-            if (file_exists($filePath)) {
-                unlink($filePath);
+            $path = $portfolio->featured_image;
+            if (str_starts_with($path, '/storage/')) {
+                $relative = substr($path, strlen('/storage/'));
+                Storage::disk('public')->delete($relative);
             }
         }
 
         // Delete gallery images
         if ($portfolio->gallery_images && is_array($portfolio->gallery_images)) {
             foreach ($portfolio->gallery_images as $image) {
-                $filePath = public_path($image);
-                if (file_exists($filePath)) {
-                    unlink($filePath);
+                if (str_starts_with($image, '/storage/')) {
+                    $relative = substr($image, strlen('/storage/'));
+                    Storage::disk('public')->delete($relative);
                 }
             }
         }

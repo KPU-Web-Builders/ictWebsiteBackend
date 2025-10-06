@@ -483,10 +483,10 @@ GET /api/portfolio
           "description": "Modern e-commerce platform",
           "client_name": "ABC Corp",
           "project_url": "https://example.com",
-          "featured_image": "/uploads/portfolio/1733123456_featured_image.jpg",
+          "featured_image": "/storage/portfolio/1733123456_featured_image.jpg",
           "gallery_images": [
-            "/uploads/portfolio/1733123456_gallery_0_image1.jpg",
-            "/uploads/portfolio/1733123456_gallery_1_image2.jpg"
+            "/storage/portfolio/1733123456_gallery_0_image1.jpg",
+            "/storage/portfolio/1733123456_gallery_1_image2.jpg"
           ],
           "service_id": 1,
           "technologies_used": ["Laravel", "Vue.js", "MySQL"],
@@ -524,7 +524,7 @@ GET /api/portfolio/{slug}
       "description": "Modern e-commerce platform with advanced features",
       "client_name": "ABC Corp",
       "project_url": "https://example.com",
-      "featured_image": "/uploads/portfolio/1733123456_featured_image.jpg",
+      "featured_image": "/storage/portfolio/1733123456_featured_image.jpg",
       "gallery_images": [...],
       "technologies_used": ["Laravel", "Vue.js", "MySQL"],
       "project_date": "2024-01-15",
@@ -547,6 +547,10 @@ POST /api/portfolio
     is_published: true
     featured_image: [image file]
     gallery_images: [array of image files]
+    
+- Notes:
+  - Uploaded images are stored on the public disk and returned as paths under `/storage/portfolio/...`.
+  - Ensure `php artisan storage:link` is set up in non-test environments.
 
 PUT /api/portfolio/{slug}
 - Description: Update portfolio item by slug
@@ -1516,6 +1520,118 @@ POST /api/testimonials/bulk-update
 - Response: {
     "status": "success",
     "message": "Testimonials approved successfully"
+  }
+
+=== PARTNERS ROUTES ===
+
+GET /api/partners
+- Description: List partners with optional filters.
+- Query Parameters:
+  - search: string (filter by name)
+  - order: asc|desc (default: asc)
+  - limit: integer (limit number of results)
+- Example: GET /api/partners?search=acme&order=asc&limit=12
+- Response: {
+    "status": "success",
+    "data": [
+      { "id": 1, "name": "Acme Inc", "picture": "/storage/partners/acme.png" }
+    ]
+  }
+
+GET /api/partners/{id}
+- Description: Get a single partner by ID.
+- Example: GET /api/partners/1
+- Response: {
+    "status": "success",
+    "data": { "id": 1, "name": "Acme Inc", "picture": "/storage/partners/acme.png" }
+  }
+
+POST /api/partners
+- Description: Create a partner. Supports file upload or URL string.
+- Option A (multipart/form-data):
+  - Fields: name (required), picture (file) OR image (file)
+- Option B (application/json):
+  - Body: { "name": "Acme Inc", "picture": "https://cdn.example.com/logo.png" }
+- Example (multipart): POST /api/partners
+- Response: {
+    "status": "success",
+    "message": "Partner created successfully",
+    "data": { "id": 1, "name": "Acme Inc", "picture": "/storage/partners/xxx.png" }
+  }
+
+PUT /api/partners/{id}
+- Description: Update partner name and/or picture. Uploading a new file replaces the old one.
+- Option A (multipart/form-data): name, picture (file) OR image (file)
+- Option B (application/json): { "name": "New Name", "picture": "https://..." }
+- Example: PUT /api/partners/1
+- Response: {
+    "status": "success",
+    "message": "Partner updated successfully",
+    "data": { "id": 1, "name": "New Name", "picture": "/storage/partners/yyy.png" }
+  }
+
+DELETE /api/partners/{id}
+- Description: Delete a partner and remove associated uploaded file (if any).
+- Example: DELETE /api/partners/1
+- Response: {
+    "status": "success",
+    "message": "Partner deleted successfully"
+  }
+
+=== SERVICES CARDS ROUTES ===
+
+GET /api/services-cards
+- Description: List service cards with optional filters.
+- Query Parameters:
+  - search: string (filter by name/description)
+  - order: asc|desc (default: asc)
+  - limit: integer (limit number of results)
+- Example: GET /api/services-cards?search=hosting&order=asc&limit=8
+- Response: {
+    "status": "success",
+    "data": [
+      { "id": 1, "name": "Managed Hosting", "description": "Fast & secure", "picture": "/storage/services_cards/icon.png" }
+    ]
+  }
+
+GET /api/services-cards/{id}
+- Description: Get a single service card by ID.
+- Example: GET /api/services-cards/1
+- Response: {
+    "status": "success",
+    "data": { "id": 1, "name": "Managed Hosting", "description": "Fast & secure", "picture": "/storage/services_cards/icon.png" }
+  }
+
+POST /api/services-cards
+- Description: Create a service card. Supports file upload or URL string.
+- Option A (multipart/form-data):
+  - Fields: name (required), description (optional), picture (file) OR image (file)
+- Option B (application/json):
+  - Body: { "name": "Managed Hosting", "description": "Fast & secure", "picture": "https://cdn.example.com/icon.webp" }
+- Example (multipart): POST /api/services-cards
+- Response: {
+    "status": "success",
+    "message": "Service card created successfully",
+    "data": { "id": 1, "name": "Managed Hosting", "description": "Fast & secure", "picture": "/storage/services_cards/xxx.png" }
+  }
+
+PUT /api/services-cards/{id}
+- Description: Update service card fields; new upload replaces the old file.
+- Option A (multipart/form-data): name, description, picture (file) OR image (file)
+- Option B (application/json): { "name": "New Name", "description": "...", "picture": "https://..." }
+- Example: PUT /api/services-cards/1
+- Response: {
+    "status": "success",
+    "message": "Service card updated successfully",
+    "data": { "id": 1, "name": "New Name", "description": "...", "picture": "/storage/services_cards/yyy.png" }
+  }
+
+DELETE /api/services-cards/{id}
+- Description: Delete a service card and remove associated uploaded file (if any).
+- Example: DELETE /api/services-cards/1
+- Response: {
+    "status": "success",
+    "message": "Service card deleted successfully"
   }
 
 === OTHER ROUTES ===

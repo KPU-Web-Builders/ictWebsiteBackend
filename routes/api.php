@@ -7,13 +7,15 @@ use App\Http\Controllers\FaqController;
 use App\Http\Controllers\HostingPlanController;
 use App\Http\Controllers\PlanFeatureController;
 use App\Http\Controllers\PortfolioController;
+use App\Http\Controllers\PartnersController;
 use App\Http\Controllers\ServiceCategoryController;
 use App\Http\Controllers\SiteSettingController;
 use App\Http\Controllers\TeamMemberController;
 use App\Http\Controllers\TestimonialController;
+use App\Http\Controllers\ServicesCardController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-
+//jwt 
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
@@ -155,6 +157,24 @@ Route::prefix('testimonials')->group(function () {
     Route::patch('/{id}/toggle-featured', [TestimonialController::class, 'toggleFeatured']);
     Route::post('/reorder', [TestimonialController::class, 'reorder']);
     Route::post('/bulk-update', [TestimonialController::class, 'bulkUpdate']);
+});
+
+// Partners API Routes
+Route::prefix('partners')->group(function () {
+    Route::get('/', [PartnersController::class, 'index']);
+    Route::get('/{id}', [PartnersController::class, 'show']);
+    Route::post('/', [PartnersController::class, 'store']);
+    Route::put('/{id}', [PartnersController::class, 'update']);
+    Route::delete('/{id}', [PartnersController::class, 'destroy']);
+});
+
+// Services Cards API Routes
+Route::prefix('services-cards')->group(function () {
+    Route::get('/', [ServicesCardController::class, 'index']);
+    Route::get('/{id}', [ServicesCardController::class, 'show']);
+    Route::post('/', [ServicesCardController::class, 'store']);
+    Route::put('/{id}', [ServicesCardController::class, 'update']);
+    Route::delete('/{id}', [ServicesCardController::class, 'destroy']);
 });
 
 // Example protected route
