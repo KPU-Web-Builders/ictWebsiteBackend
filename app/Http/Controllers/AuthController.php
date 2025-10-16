@@ -27,15 +27,44 @@ class AuthController extends Controller
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function register(Request $request)
+     public function register(Request $request)
     {
-        $validator = Validator::make($request->all(), [
+        \Log::info('Registration attempt started', ['raw_email' => $request->email]);
+
+        // Normalize email to lowercase and trim whitespace
+        $email = strtolower(trim($request->email));
+
+        \Log::info('Email normalized', ['normalized_email' => $email]);
+
+        // Check if user was created very recently (within last 5 seconds) - likely a duplicate request
+        $recentUser = User::where('email', $email)
+            ->where('created_at', '>', now()->subSeconds(5))
+            ->first();
+
+        if ($recentUser) {
+            \Log::warning('Duplicate registration request detected - returning success for existing user', [
+                'email' => $email,
+                'user_id' => $recentUser->id,
+                'created_at' => $recentUser->created_at
+            ]);
+
+            // Return success with token for the existing user (idempotent behavior)
+            $token = auth('api')->login($recentUser);
+            return $this->respondWithToken($token);
+        }
+
+        $validator = Validator::make(array_merge($request->all(), ['email' => $email]), [
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:6|confirmed',
         ]);
 
         if ($validator->fails()) {
+            \Log::error('Validation failed', [
+                'email' => $email,
+                'errors' => $validator->errors()->toArray()
+            ]);
+
             return response()->json([
                 'status' => 'error',
                 'message' => 'Validation error',
@@ -43,17 +72,51 @@ class AuthController extends Controller
             ], 422);
         }
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
+        \Log::info('Validation passed, attempting to create user', ['email' => $email]);
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'User registered successfully',
-            'user' => $user
-        ], 201);
+        try {
+            $user = User::create([
+                'name' => $request->name,
+                'email' => $email,
+                'password' => Hash::make($request->password),
+            ]);
+
+            \Log::info('User created successfully', ['user_id' => $user->id, 'email' => $email]);
+
+            $token = auth('api')->login($user);
+
+            \Log::info('User logged in successfully', ['user_id' => $user->id]);
+
+            return $this->respondWithToken($token);
+        } catch (\Illuminate\Database\QueryException $e) {
+            \Log::error('Database error during user creation', [
+                'email' => $email,
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Database error (possible duplicate entry)',
+                'errors' => $e->getMessage()
+            ], 409);
+        } catch (\Exception $e) {
+            \Log::error('Exception during registration', [
+                'email' => $email,
+                'error' => $e->getMessage()
+            ]);
+
+            // If anything fails after user creation, delete the user
+            if (isset($user) && $user->exists) {
+                \Log::info('Deleting user due to registration failure', ['user_id' => $user->id]);
+                $user->delete();
+            }
+
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Registration failed',
+                'errors' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -64,7 +127,10 @@ class AuthController extends Controller
      */
     public function login(Request $request)
     {
-        $validator = Validator::make($request->all(), [
+        // Normalize email to lowercase and trim whitespace
+        $email = strtolower(trim($request->email));
+
+        $validator = Validator::make(array_merge($request->all(), ['email' => $email]), [
             'email' => 'required|email',
             'password' => 'required|string',
         ]);
@@ -77,7 +143,10 @@ class AuthController extends Controller
             ], 422);
         }
 
-        $credentials = $request->only('email', 'password');
+        $credentials = [
+            'email' => $email,
+            'password' => $request->password
+        ];
 
         if (!$token = auth('api')->attempt($credentials)) {
             return response()->json([

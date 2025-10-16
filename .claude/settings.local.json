@@ -4,7 +4,15 @@
       "Bash(php artisan make:migration:*)",
       "Bash(php artisan make:seeder:*)",
       "Bash(herd php artisan make:seeder:*)",
-      "Bash(/c/Users/Rahmani/.config/herd/bin/php artisan make:seeder UserSeeder)"
+      "Bash(/c/Users/Rahmani/.config/herd/bin/php artisan make:seeder UserSeeder)",
+      "Bash(php artisan migrate:status:*)",
+      "Bash(sqlite3:*)",
+      "Bash(/c/Users/Rahmani/.config/herd/bin/php artisan tinker:*)",
+      "Bash(curl -X POST http://ict-backend.test/api/auth/register -H \"Content-Type: application/json\" -H \"Accept: application/json\" -d \"{\"\"name\"\":\"\"Test User 999\"\",\"\"email\"\":\"\"testuser999@example.com\"\",\"\"password\"\":\"\"123456789\"\",\"\"password_confirmation\"\":\"\"123456789\"\"}\")",
+      "Bash(curl -X POST http://ict-backend.test/api/auth/register -H \"Content-Type: application/json\" -H \"Accept: application/json\" -d \"{\"\"name\"\":\"\"Test User 888\"\",\"\"email\"\":\"\"testuser888@example.com\"\",\"\"password\"\":\"\"123456789\"\",\"\"password_confirmation\"\":\"\"123456789\"\"}\")",
+      "Bash(/c/Users/Rahmani/.config/herd/bin/php artisan db:seed --class=PartnersSeeder)",
+      "Bash(php:*)",
+      "Bash(curl:*)"
     ],
     "deny": [],
     "ask": []

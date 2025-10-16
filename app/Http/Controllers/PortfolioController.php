@@ -178,24 +178,48 @@ class PortfolioController extends Controller
 
     public function destroy($slug): JsonResponse
     {
+        \Log::info('Portfolio delete attempt', ['slug' => $slug]);
+
         $portfolio = Portfolio::where('slug', $slug)->first();
 
+        \Log::info('Portfolio find result', ['found' => $portfolio ? true : false, 'id' => $portfolio?->id]);
+
         if (!$portfolio) {
+            // Check what portfolios exist
+            $allSlugs = Portfolio::pluck('slug')->toArray();
+            \Log::error('Portfolio not found', [
+                'searched_slug' => $slug,
+                'all_slugs' => $allSlugs
+            ]);
+
             return response()->json([
                 'status' => 'error',
                 'message' => 'Portfolio item not found'
             ], 404);
         }
 
-        // Delete associated files
-        $this->deletePortfolioFiles($portfolio);
+        try {
+            // Delete associated files
+            $this->deletePortfolioFiles($portfolio);
 
-        $portfolio->delete();
+            $portfolio->delete();
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Portfolio item deleted successfully'
-        ]);
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Portfolio item deleted successfully'
+            ]);
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Check if it's a foreign key constraint error
+            if ($e->getCode() == 23000 || str_contains($e->getMessage(), 'FOREIGN KEY constraint failed')) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Cannot delete this portfolio item because it has associated records. Please delete or reassign related items first.'
+                ], 409);
+            }
+
+            // Re-throw other database exceptions
+            throw $e;
+        }
     }
 
     public function toggleFeatured($slug): JsonResponse

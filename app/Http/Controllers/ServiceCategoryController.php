@@ -133,12 +133,25 @@ class ServiceCategoryController extends Controller
             ], 404);
         }
 
-        $category->delete();
+        try {
+            $category->delete();
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Service category deleted successfully'
-        ]);
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Service category deleted successfully'
+            ]);
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Check if it's a foreign key constraint error
+            if ($e->getCode() == 23000 || str_contains($e->getMessage(), 'FOREIGN KEY constraint failed')) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Cannot delete this category because it has associated records. Please delete or reassign related items first.'
+                ], 409);
+            }
+
+            // Re-throw other database exceptions
+            throw $e;
+        }
     }
 
     public function toggleActive($id): JsonResponse
