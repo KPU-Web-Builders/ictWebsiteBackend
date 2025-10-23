@@ -35,6 +35,7 @@ class ServicesCardController extends Controller
     public function show($id): JsonResponse
     {
         $card = services_card::find($id);
+
         if (!$card) {
             return response()->json([
                 'status' => 'error',
@@ -124,6 +125,7 @@ class ServicesCardController extends Controller
     public function destroy($id): JsonResponse
     {
         $card = services_card::find($id);
+
         if (!$card) {
             return response()->json([
                 'status' => 'error',

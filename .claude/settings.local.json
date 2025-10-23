@@ -12,7 +12,18 @@
       "Bash(curl -X POST http://ict-backend.test/api/auth/register -H \"Content-Type: application/json\" -H \"Accept: application/json\" -d \"{\"\"name\"\":\"\"Test User 888\"\",\"\"email\"\":\"\"testuser888@example.com\"\",\"\"password\"\":\"\"123456789\"\",\"\"password_confirmation\"\":\"\"123456789\"\"}\")",
       "Bash(/c/Users/Rahmani/.config/herd/bin/php artisan db:seed --class=PartnersSeeder)",
       "Bash(php:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(/c/Users/Rahmani/.config/herd/bin/php:*)",
+      "Read(//c/Users/Rahmani/.config/herd/bin/**)",
+      "Bash(TOKEN=\"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vaWN0LWJhY2tlbmQudGVzdC9hcGkvYXV0aC9sb2dpbiIsImlhdCI6MTc2MTE0MzA2OSwiZXhwIjoxNzYxMTQ2NjY5LCJuYmYiOjE3NjExNDMwNjksImp0aSI6ImQxaUlSTnpFNzgxd244b2oiLCJzdWIiOiIyNSIsInBydiI6IjIzYmQ1Yzg5NDlmNjAwYWRiMzllNzAxYzQwMDg3MmRiN2E1OTc2ZjcifQ.r-4mQHlgJj9QgfDUNhkFRf3IFpxhIuXu_b1HI6LUGkU\")",
+      "Bash(TOKEN=\"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vaWN0LWJhY2tlbmQudGVzdC9hcGkvYXV0aC9sb2dpbiIsImlhdCI6MTc2MTE0NDQ1MSwiZXhwIjoxNzYxMTQ4MDUxLCJuYmYiOjE3NjExNDQ0NTEsImp0aSI6ImVHTVowdWlYdnVPTmRwOUQiLCJzdWIiOiIyNiIsInBydiI6IjIzYmQ1Yzg5NDlmNjAwYWRiMzllNzAxYzQwMDg3MmRiN2E1OTc2ZjcifQ.N1fDAfhiCNicbzyadlnwgKrl9XJTcaOBq4Mew_SavLc\")",
+      "Bash(__NEW_LINE__ echo \"Testing /me endpoint:\")",
+      "Bash(__NEW_LINE__ echo -e \"\\n\\nTesting logout:\")",
+      "Bash(for id in 7 8 9 10 11 12 13 14)",
+      "Bash(do curl -s -X DELETE \"http://ict-backend.test/api/service-categories/$id\" -H \"Accept: application/json\")",
+      "Bash(done)",
+      "Bash(\"C:/Users/Rahmani/.config/herd/bin/php82.bat\" artisan db:table services)",
+      "Bash(\"C:/Users/Rahmani/.config/herd/bin/php82.bat\" artisan db:seed --class=PartnersSeeder)"
     ],
     "deny": [],
     "ask": []

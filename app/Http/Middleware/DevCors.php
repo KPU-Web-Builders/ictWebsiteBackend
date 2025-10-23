@@ -32,6 +32,6 @@ class DevCors
         $response->headers->set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, X-CSRF-TOKEN');
         $response->headers->set('Access-Control-Allow-Credentials', 'true');
 
-        return $next($request);
+        return $response;
     }
 }

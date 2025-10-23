@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\SiteSetting;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 class SiteSettingController extends Controller
@@ -103,6 +104,11 @@ class SiteSettingController extends Controller
             ], 404);
         }
 
+        // Delete the file if it's an image type
+        if ($setting->setting_type === 'image' && $setting->setting_value) {
+            $this->deleteSettingFile($setting->setting_value);
+        }
+
         $setting->delete();
 
         return response()->json([
@@ -123,17 +129,14 @@ class SiteSettingController extends Controller
 
             // Delete old file if updating
             if ($existingSetting && $existingSetting->setting_value) {
-                $oldFilePath = public_path($existingSetting->setting_value);
-                if (file_exists($oldFilePath)) {
-                    unlink($oldFilePath);
-                }
+                $this->deleteSettingFile($existingSetting->setting_value);
             }
 
             $file = $request->file('file');
-            $fileName = time() . '_' . $file->getClientOriginalName();
-            $file->move(public_path('uploads/settings'), $fileName);
-            
-            return '/uploads/settings/' . $fileName;
+            $fileName = time() . '_' . preg_replace('/\s+/', '_', $file->getClientOriginalName());
+            Storage::disk('public')->putFileAs('settings', $file, $fileName);
+
+            return '/storage/settings/' . $fileName;
         }
 
         // Handle regular setting_value for non-image types or when no file is uploaded
@@ -149,5 +152,17 @@ class SiteSettingController extends Controller
         // For new settings without file upload, setting_value is required
         $request->validate(['setting_value' => 'required']);
         return $request->setting_value;
+    }
+
+    private function deleteSettingFile(?string $path): void
+    {
+        if (!$path) {
+            return;
+        }
+
+        if (str_starts_with($path, '/storage/')) {
+            $relative = substr($path, strlen('/storage/'));
+            Storage::disk('public')->delete($relative);
+        }
     }
 }

@@ -9,6 +9,7 @@ use App\Http\Controllers\PlanFeatureController;
 use App\Http\Controllers\PortfolioController;
 use App\Http\Controllers\PartnersController;
 use App\Http\Controllers\ServiceCategoryController;
+use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\SiteSettingController;
 use App\Http\Controllers\TeamMemberController;
 use App\Http\Controllers\TestimonialController;
@@ -25,11 +26,11 @@ Route::group(['prefix' => 'auth'], function () {
     // Public routes (no authentication required)
     Route::post('register', [AuthController::class, 'register']);
     Route::post('login', [AuthController::class, 'login']);
-    
+    Route::post('logout', [AuthController::class, 'logout']);
+    Route::post('refresh', [AuthController::class, 'refresh']);
+
     // Protected routes (require authentication)
-    Route::middleware('auth:api')->group(function () {
-        Route::post('logout', [AuthController::class, 'logout']);
-        Route::post('refresh', [AuthController::class, 'refresh']);
+    Route::middleware('auth.jwt')->group(function () {
         Route::get('me', [AuthController::class, 'me']);
     });
 });
@@ -51,6 +52,17 @@ Route::prefix('service-categories')->group(function () {
     Route::put('/{id}', [ServiceCategoryController::class, 'update']);
     Route::delete('/{id}', [ServiceCategoryController::class, 'destroy']);
     Route::patch('/{id}/toggle-active', [ServiceCategoryController::class, 'toggleActive']);
+});
+
+// Services API Routes
+Route::prefix('services')->group(function () {
+    Route::get('/', [ServiceController::class, 'index']);
+    Route::get('/{id}', [ServiceController::class, 'show']);
+    Route::post('/', [ServiceController::class, 'store']);
+    Route::put('/{id}', [ServiceController::class, 'update']);
+    Route::delete('/{id}', [ServiceController::class, 'destroy']);
+    Route::patch('/{id}/toggle-active', [ServiceController::class, 'toggleActive']);
+    Route::get('/by-category/{categoryId}', [ServiceController::class, 'getByCategory']);
 });
 
 // Hosting Plans API Routes
@@ -178,9 +190,9 @@ Route::prefix('services-cards')->group(function () {
 });
 
 // Example protected route
-Route::middleware('auth:api')->get('/protected', function () {
+Route::middleware('auth.jwt')->get('/protected', function () {
     return response()->json([
         'message' => 'This is a protected route',
-        'user' => auth()->user()
+        'user' => auth('api')->user()
     ]);
 });

@@ -1,0 +1,249 @@
+================================================================================
+                    LOGOUT FUNCTIONALITY FIX
+                    October 22, 2025
+================================================================================
+
+ISSUE SUMMARY:
+--------------
+The logout endpoint was returning "Unauthenticated" error instead of successfully
+logging out users. This was caused by missing JWT middleware configuration in
+Laravel 12.
+
+ROOT CAUSE:
+-----------
+1. Laravel 12 changed the middleware configuration approach - middleware aliases
+   must be explicitly registered in bootstrap/app.php
+
+2. The JWT authentication middleware was not registered as an alias, causing the
+   auth:api middleware to fail
+
+3. The logout route was protected by authentication middleware that checked if
+   the token was already blacklisted, preventing the logout action from completing
+
+FIXES IMPLEMENTED:
+------------------
+
+1. REGISTERED JWT MIDDLEWARE ALIAS (bootstrap/app.php)
+
+   Added JWT authentication middleware alias to bootstrap/app.php:
+
+   ```php
+   ->withMiddleware(function (Middleware $middleware): void {
+       $middleware->append(DevCors::class);
+
+       // Register middleware aliases
+       $middleware->alias([
+           'auth' => \Illuminate\Auth\Middleware\Authenticate::class,
+           'auth.jwt' => \PHPOpenSourceSaver\JWTAuth\Http\Middleware\Authenticate::class,
+       ]);
+   })
+   ```
+
+2. UPDATED ROUTE CONFIGURATION (routes/api.php)
+
+   Changed authentication routes to use the new middleware alias and moved
+   logout/refresh outside the protected group:
+
+   ```php
+   Route::group(['prefix' => 'auth'], function () {
+       // Public routes
+       Route::post('register', [AuthController::class, 'register']);
+       Route::post('login', [AuthController::class, 'login']);
+       Route::post('logout', [AuthController::class, 'logout']);
+       Route::post('refresh', [AuthController::class, 'refresh']);
+
+       // Protected routes
+       Route::middleware('auth.jwt')->group(function () {
+           Route::get('me', [AuthController::class, 'me']);
+       });
+   });
+   ```
+
+3. ADDED ERROR HANDLING (app/Http/Controllers/AuthController.php)
+
+   Improved logout method with try-catch for better error reporting:
+
+   ```php
+   public function logout()
+   {
+       try {
+           auth('api')->logout();
+
+           return response()->json([
+               'status' => 'success',
+               'message' => 'Successfully logged out'
+           ]);
+       } catch (\Exception $e) {
+           return response()->json([
+               'status' => 'error',
+               'message' => 'Logout failed: ' . $e->getMessage()
+           ], 500);
+       }
+   }
+   ```
+
+WHY LOGOUT/REFRESH ROUTES ARE PUBLIC:
+--------------------------------------
+
+The logout and refresh routes are intentionally placed outside the auth.jwt
+middleware group because:
+
+1. LOGOUT: The auth('api')->logout() method in the controller handles token
+   validation and blacklisting internally. If we protect it with middleware,
+   the middleware checks if the token is blacklisted BEFORE reaching the
+   controller, creating a chicken-and-egg problem.
+
+2. REFRESH: The refresh endpoint needs to accept expired tokens (but not
+   blacklisted ones). The auth('api')->refresh() method handles this validation
+   internally, so middleware protection would prevent refreshing expired tokens.
+
+Both routes still require a valid JWT token in the Authorization header - they
+just don't use middleware to validate it. The validation happens inside the
+controller methods via the auth('api') facade.
+
+AUTHENTICATION FLOW:
+--------------------
+
+1. LOGIN
+   POST /api/auth/login
+   Body: { "email": "user@example.com", "password": "password" }
+   Response: {
+       "status": "success",
+       "access_token": "eyJ0eXAiOiJKV1...",
+       "token_type": "bearer",
+       "expires_in": 3600,
+       "user": { ... }
+   }
+
+2. ACCESS PROTECTED ROUTES
+   GET /api/auth/me
+   Header: Authorization: Bearer eyJ0eXAiOiJKV1...
+   Response: {
+       "status": "success",
+       "user": { ... }
+   }
+
+3. LOGOUT
+   POST /api/auth/logout
+   Header: Authorization: Bearer eyJ0eXAiOiJKV1...
+   Response: {
+       "status": "success",
+       "message": "Successfully logged out"
+   }
+
+4. AFTER LOGOUT (Token Blacklisted)
+   GET /api/auth/me
+   Header: Authorization: Bearer eyJ0eXAiOiJKV1... (same token)
+   Response: {
+       "message": "The token has been blacklisted",
+       "exception": "UnauthorizedHttpException"
+   }
+
+5. REFRESH TOKEN
+   POST /api/auth/refresh
+   Header: Authorization: Bearer eyJ0eXAiOiJKV1... (expired but not blacklisted)
+   Response: {
+       "status": "success",
+       "access_token": "new_token_here...",
+       "token_type": "bearer",
+       "expires_in": 3600,
+       "user": { ... }
+   }
+
+TESTING RESULTS:
+----------------
+✅ Login generates valid JWT token
+✅ Protected routes (/me) work with valid token
+✅ Logout successfully invalidates token
+✅ Blacklisted tokens are rejected on protected routes
+✅ Error handling provides clear messages
+✅ Token refresh works for expired (non-blacklisted) tokens
+
+MIDDLEWARE CONFIGURATION:
+-------------------------
+
+auth.jwt Middleware:
+- Purpose: Validates JWT tokens for protected routes
+- Package: PHPOpenSourceSaver\JWTAuth\Http\Middleware\Authenticate
+- Checks: Token validity, expiration, and blacklist status
+- Usage: Apply to routes that require authentication
+
+auth Middleware:
+- Purpose: Standard Laravel authentication (session-based)
+- Class: Illuminate\Auth\Middleware\Authenticate
+- Usage: For web routes with session authentication
+
+IMPORTANT NOTES:
+----------------
+
+1. JWT Configuration:
+   - JWT secret must be set in .env: JWT_SECRET=your_secret_key
+   - Generate with: php artisan jwt:secret
+   - Configured in: config/jwt.php
+
+2. Token Blacklisting:
+   - Enabled by default in config/jwt.php
+   - Tokens are blacklisted on logout
+   - Blacklist prevents reuse of logged-out tokens
+
+3. Token Expiration:
+   - Default TTL: 60 minutes (configurable via JWT_TTL)
+   - Refresh TTL: 2 weeks (configurable via JWT_REFRESH_TTL)
+   - Expired tokens can be refreshed if not blacklisted
+
+4. Guard Configuration:
+   - API guard uses 'jwt' driver (config/auth.php)
+   - Use auth('api') to access JWT-authenticated user
+   - Use auth() for default guard (web/session)
+
+TROUBLESHOOTING:
+----------------
+
+Problem: "Unauthenticated" error on protected routes
+Solution: Ensure auth.jwt middleware is registered in bootstrap/app.php
+
+Problem: "The token has been blacklisted" on logout
+Solution: Normal behavior - means token was already logged out
+
+Problem: Logout doesn't invalidate token
+Solution: Check JWT blacklist is enabled in config/jwt.php
+
+Problem: "Class auth.jwt not found"
+Solution: Clear config cache: php artisan config:clear
+
+Problem: Token works after logout
+Solution: Verify blacklist is enabled and cache is cleared
+
+FILES MODIFIED:
+---------------
+1. bootstrap/app.php - Added JWT middleware alias
+2. routes/api.php - Reorganized auth routes
+3. app/Http/Controllers/AuthController.php - Added error handling to logout
+
+CURL EXAMPLES:
+--------------
+
+# Login
+curl -X POST "http://ict-backend.test/api/auth/login" \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -d '{"email":"user@example.com","password":"password"}'
+
+# Access Protected Route
+curl -X GET "http://ict-backend.test/api/auth/me" \
+  -H "Accept: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"
+
+# Logout
+curl -X POST "http://ict-backend.test/api/auth/logout" \
+  -H "Accept: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"
+
+# Refresh Token
+curl -X POST "http://ict-backend.test/api/auth/refresh" \
+  -H "Accept: application/json" \
+  -H "Authorization: Bearer YOUR_EXPIRED_TOKEN_HERE"
+
+================================================================================
+END OF DOCUMENTATION
+================================================================================

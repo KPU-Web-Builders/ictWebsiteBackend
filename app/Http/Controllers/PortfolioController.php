@@ -178,20 +178,9 @@ class PortfolioController extends Controller
 
     public function destroy($slug): JsonResponse
     {
-        \Log::info('Portfolio delete attempt', ['slug' => $slug]);
-
         $portfolio = Portfolio::where('slug', $slug)->first();
 
-        \Log::info('Portfolio find result', ['found' => $portfolio ? true : false, 'id' => $portfolio?->id]);
-
         if (!$portfolio) {
-            // Check what portfolios exist
-            $allSlugs = Portfolio::pluck('slug')->toArray();
-            \Log::error('Portfolio not found', [
-                'searched_slug' => $slug,
-                'all_slugs' => $allSlugs
-            ]);
-
             return response()->json([
                 'status' => 'error',
                 'message' => 'Portfolio item not found'

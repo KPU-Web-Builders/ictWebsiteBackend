@@ -12,6 +12,9 @@ class PartnersSeeder extends Seeder
      */
     public function run(): void
     {
+        // Clear existing partners to avoid duplicates
+        Partners::truncate();
+
         $partners = [
             [
                 'name' => 'Microsoft',
@@ -52,6 +55,26 @@ class PartnersSeeder extends Seeder
             [
                 'name' => 'VMware',
                 'picture' => 'https://logo.clearbit.com/vmware.com',
+            ],
+            [
+                'name' => 'Adobe',
+                'picture' => 'https://logo.clearbit.com/adobe.com',
+            ],
+            [
+                'name' => 'Salesforce',
+                'picture' => 'https://logo.clearbit.com/salesforce.com',
+            ],
+            [
+                'name' => 'SAP',
+                'picture' => 'https://logo.clearbit.com/sap.com',
+            ],
+            [
+                'name' => 'Nvidia',
+                'picture' => 'https://logo.clearbit.com/nvidia.com',
+            ],
+            [
+                'name' => 'Slack',
+                'picture' => 'https://logo.clearbit.com/slack.com',
             ],
         ];
 
